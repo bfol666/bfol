@@ -1,3 +1,4 @@
+import 'dart:io';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../data/models/entry.dart';
 import '../../data/models/weekly_report.dart';
@@ -36,6 +37,20 @@ class AINotifier extends StateNotifier<AIState> {
 
   AINotifier(this._aiService) : super(const AIState());
 
+  bool get isConfigured => _aiService.apiKey.isNotEmpty;
+
+  Future<String?> transcribeVoice(String filePath) async {
+    if (!isConfigured) return null;
+    try {
+      final file = File(filePath);
+      final bytes = await file.readAsBytes();
+      final filename = filePath.split('/').last;
+      return await _aiService.transcribeVoice(bytes, filename);
+    } catch (_) {
+      return null;
+    }
+  }
+
   Future<String?> getAIReply(String content, String moodLabel) async {
     state = state.copyWith(isAnalyzing: true);
     try {
@@ -70,7 +85,7 @@ class AINotifier extends StateNotifier<AIState> {
         id: '$userId-${weekStart.toIso8601String()}',
         userId: userId,
         weekStart: weekStart,
-        weekEnd: weekStart.add(const Duration(days: 7)),
+        weekEnd: DateTime.now(),
         keywords: keywords,
         moodCurve: buildMoodCurve(entries),
         aiSummary: summary,
@@ -87,20 +102,25 @@ class AINotifier extends StateNotifier<AIState> {
   }
 
   List<MoodPoint> buildMoodCurve(List<Entry> entries) {
-    final Map<String, List<double>> dayScores = {};
+    final Map<int, List<double>> dayScores = {};
     for (final entry in entries) {
-      final date = entry.createdAt
-          .toIso8601String()
-          .split('T')
-          .first;
-      final score = entry.mood.score.toDouble();
-      dayScores.putIfAbsent(date, () => []).add(score);
+      final dayIdx = entry.createdAt.weekday - 1; // 0=Mon
+      dayScores.putIfAbsent(dayIdx, () => []).add(entry.mood.score.toDouble());
     }
 
-    return dayScores.entries.map((e) {
-      final avg = e.value.reduce((a, b) => a + b) / e.value.length;
-      return MoodPoint(date: DateTime.parse(e.key), score: avg);
-    }).toList()
-      ..sort((a, b) => a.date.compareTo(b.date));
+    final now = DateTime.now();
+    final weekStart = now.subtract(Duration(days: now.weekday - 1));
+    final weekStartDate = DateTime(weekStart.year, weekStart.month, weekStart.day);
+
+    final result = <MoodPoint>[];
+    for (int i = 0; i < 7; i++) {
+      final scores = dayScores[i] ?? [];
+      final avg = scores.isEmpty ? 3.0 : scores.reduce((a, b) => a + b) / scores.length;
+      result.add(MoodPoint(
+        date: weekStartDate.add(Duration(days: i)),
+        score: avg,
+      ));
+    }
+    return result;
   }
 }

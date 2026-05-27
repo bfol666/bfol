@@ -1,4 +1,5 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import '../../data/services/local_storage_service.dart';
 import '../../data/services/supabase_service.dart';
 import '../../data/services/ai_service.dart';
 import '../../core/constants/app_constants.dart';
@@ -6,30 +7,33 @@ import 'auth_provider.dart';
 import 'entry_provider.dart';
 import 'ai_provider.dart';
 
-// Service providers
+// ── Service providers ──
+
+final localStorageServiceProvider = Provider<LocalStorageService>((ref) {
+  throw UnimplementedError('Must be overridden in main.dart');
+});
+
 final supabaseServiceProvider = Provider<SupabaseService>((ref) {
-  final service = SupabaseService();
-  // Initialization happens in main.dart
-  return service;
+  throw UnimplementedError('Must be overridden in main.dart');
 });
 
 final aiServiceProvider = Provider<AIService>((ref) {
   return AIService(apiKey: AppConstants.openaiApiKey);
 });
 
-// Auth provider
+// ── Feature providers ──
+
 final authProvider = StateNotifierProvider<AuthNotifier, AuthState>((ref) {
+  final localStorage = ref.watch(localStorageServiceProvider);
   final supabaseService = ref.watch(supabaseServiceProvider);
-  return AuthNotifier(supabaseService);
+  return AuthNotifier(localStorage, supabaseService);
 });
 
-// Entry provider
 final entryProvider = StateNotifierProvider<EntryNotifier, EntryState>((ref) {
-  final supabaseService = ref.watch(supabaseServiceProvider);
-  return EntryNotifier(supabaseService);
+  final localStorage = ref.watch(localStorageServiceProvider);
+  return EntryNotifier(localStorage);
 });
 
-// AI provider
 final aiProvider = StateNotifierProvider<AINotifier, AIState>((ref) {
   final aiService = ref.watch(aiServiceProvider);
   return AINotifier(aiService);

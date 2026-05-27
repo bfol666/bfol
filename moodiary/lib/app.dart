@@ -7,7 +7,9 @@ import 'presentation/pages/calendar/calendar_page.dart';
 import 'presentation/pages/weekly_report/weekly_report_page.dart';
 import 'presentation/pages/profile/profile_page.dart';
 import 'presentation/pages/create_entry/create_entry_page.dart';
+import 'presentation/pages/entry_detail/entry_detail_page.dart';
 import 'presentation/pages/auth/login_page.dart';
+import 'data/models/entry.dart';
 
 class MoodiaryApp extends StatelessWidget {
   const MoodiaryApp({super.key});
@@ -18,14 +20,49 @@ class MoodiaryApp extends StatelessWidget {
       title: 'Moodiary',
       debugShowCheckedModeBanner: false,
       theme: AppTheme.light,
-      initialRoute: '/home',
-      routes: {
-        '/login': (_) => const LoginPage(),
-        '/home': (_) => const MainShell(),
-        '/create': (_) => const CreateEntryPage(),
-        '/report': (_) => const WeeklyReportPage(),
-        '/calendar': (_) => const CalendarPage(),
-        '/profile': (_) => const ProfilePage(),
+      initialRoute: '/login',
+      onGenerateRoute: (settings) {
+        switch (settings.name) {
+          case '/login':
+            return MaterialPageRoute(
+              builder: (_) => const LoginPage(),
+            );
+          case '/home':
+            return MaterialPageRoute(
+              builder: (_) => const MainShell(),
+            );
+          case '/create':
+            return MaterialPageRoute(
+              builder: (_) => const CreateEntryPage(),
+              settings: settings,
+            );
+          case '/report':
+            return MaterialPageRoute(
+              builder: (_) => const WeeklyReportPage(),
+            );
+          case '/calendar':
+            return MaterialPageRoute(
+              builder: (_) => const CalendarPage(),
+            );
+          case '/profile':
+            return MaterialPageRoute(
+              builder: (_) => const ProfilePage(),
+            );
+          case '/detail':
+            final entry = settings.arguments as Entry?;
+            if (entry == null) {
+              return MaterialPageRoute(
+                builder: (_) => const MainShell(),
+              );
+            }
+            return MaterialPageRoute(
+              builder: (_) => EntryDetailPage(entry: entry),
+            );
+          default:
+            return MaterialPageRoute(
+              builder: (_) => const MainShell(),
+            );
+        }
       },
     );
   }
@@ -60,7 +97,7 @@ class _MainShellState extends ConsumerState<MainShell> {
         decoration: BoxDecoration(
           border: Border(
             top: BorderSide(
-              color: AppColors.glassBorder.withValues(alpha: 0.5),
+              color: AppColors.surfaceMuted,
               width: 0.5,
             ),
           ),

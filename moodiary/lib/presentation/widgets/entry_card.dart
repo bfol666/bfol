@@ -1,94 +1,124 @@
+import 'dart:io';
 import 'package:flutter/material.dart';
 import '../../core/theme/app_colors.dart';
 import '../../data/models/entry.dart';
-import 'glass_container.dart';
 
 class EntryCard extends StatelessWidget {
   final Entry entry;
   final VoidCallback? onTap;
+  final bool compact;
 
-  const EntryCard({super.key, required this.entry, this.onTap});
+  const EntryCard({
+    super.key,
+    required this.entry,
+    this.onTap,
+    this.compact = false,
+  });
+
+  Color get _moodTint {
+    switch (entry.mood.label) {
+      case '开心':
+        return AppColors.moodHappy.withValues(alpha: 0.18);
+      case '平静':
+        return AppColors.moodCalm.withValues(alpha: 0.18);
+      case '难过':
+        return AppColors.moodSad.withValues(alpha: 0.18);
+      case '焦虑':
+        return AppColors.moodAnxious.withValues(alpha: 0.18);
+      case '生气':
+        return AppColors.moodAngry.withValues(alpha: 0.18);
+      case '感激':
+        return AppColors.moodGrateful.withValues(alpha: 0.18);
+      case '期待':
+        return AppColors.moodExcited.withValues(alpha: 0.18);
+      default:
+        return AppColors.surfaceMuted;
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
     return GestureDetector(
       onTap: onTap,
-      child: GlassContainer(
-        margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+      child: Container(
+        margin: EdgeInsets.symmetric(
+          horizontal: compact ? 20 : 16,
+          vertical: compact ? 4 : 7,
+        ),
+        padding: EdgeInsets.all(compact ? 14 : 18),
+        decoration: BoxDecoration(
+          color: _moodTint,
+          borderRadius: BorderRadius.circular(compact ? 14 : 20),
+        ),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            // Header: mood + date
             Row(
               children: [
-                Text(entry.mood.emoji, style: const TextStyle(fontSize: 28)),
+                Text(entry.mood.emoji,
+                    style: TextStyle(fontSize: compact ? 22 : 28)),
                 const SizedBox(width: 10),
-                Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      entry.mood.label,
-                      style: const TextStyle(
-                        fontSize: 15,
-                        fontWeight: FontWeight.w500,
-                        color: AppColors.textPrimary,
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        entry.mood.label,
+                        style: TextStyle(
+                          fontSize: compact ? 13 : 15,
+                          fontWeight: FontWeight.w500,
+                          color: AppColors.textPrimary,
+                        ),
                       ),
-                    ),
-                    Text(
-                      _formatDate(entry.createdAt),
-                      style: const TextStyle(
-                        fontSize: 12,
-                        color: AppColors.textSecondary,
+                      Text(
+                        _formatDate(entry.createdAt),
+                        style: const TextStyle(
+                          fontSize: 12,
+                          color: AppColors.textSecondary,
+                        ),
                       ),
-                    ),
-                  ],
+                    ],
+                  ),
                 ),
-                const Spacer(),
                 if (entry.isPrivate)
                   const Icon(Icons.lock_outline,
-                      size: 16, color: AppColors.textSecondary),
+                      size: 15, color: AppColors.textSecondary),
               ],
             ),
-
-            // Content
             if (entry.content != null && entry.content!.isNotEmpty) ...[
-              const SizedBox(height: 12),
+              SizedBox(height: compact ? 8 : 12),
               Text(
                 entry.content!,
-                maxLines: 3,
+                maxLines: compact ? 2 : 3,
                 overflow: TextOverflow.ellipsis,
-                style: const TextStyle(
-                  fontSize: 14,
-                  height: 1.6,
+                style: TextStyle(
+                  fontSize: compact ? 13 : 14,
+                  height: 1.65,
                   color: AppColors.textPrimary,
                 ),
               ),
             ],
-
-            // Media preview
             if (entry.media.isNotEmpty) ...[
-              const SizedBox(height: 12),
+              SizedBox(height: compact ? 8 : 10),
               _buildMediaPreview(),
             ],
-
-            // Tags
             if (entry.tags.isNotEmpty) ...[
-              const SizedBox(height: 12),
+              SizedBox(height: compact ? 6 : 10),
               Wrap(
-                spacing: 8,
-                runSpacing: 6,
+                spacing: 6,
+                runSpacing: 4,
                 children: entry.tags.map((tag) {
                   return Container(
-                    padding: const EdgeInsets.symmetric(
-                        horizontal: 12, vertical: 4),
+                    padding:
+                        const EdgeInsets.symmetric(horizontal: 10, vertical: 3),
                     decoration: BoxDecoration(
-                      color: AppColors.primaryLight.withValues(alpha: 0.3),
-                      borderRadius: BorderRadius.circular(12),
+                      color: AppColors.primaryMuted.withValues(alpha: 0.4),
+                      borderRadius: BorderRadius.circular(10),
                     ),
                     child: Text(
                       '#$tag',
-                      style: const TextStyle(
-                        fontSize: 12,
+                      style: TextStyle(
+                        fontSize: compact ? 10 : 11,
                         color: AppColors.textSecondary,
                       ),
                     ),
@@ -111,61 +141,67 @@ class EntryCard extends StatelessWidget {
         entry.media.where((m) => m.type == EntryMediaType.link).toList();
 
     return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         if (imageMedia.isNotEmpty)
           SizedBox(
-            height: 120,
+            height: compact ? 80 : 100,
             child: ListView.separated(
               scrollDirection: Axis.horizontal,
               itemCount: imageMedia.length,
-              separatorBuilder: (context, index) => const SizedBox(width: 8),
+              separatorBuilder: (_, _) => const SizedBox(width: 8),
               itemBuilder: (context, index) {
+                final url = imageMedia[index].url;
+                final file = File(url);
+                final showImage = url.isNotEmpty && file.existsSync();
                 return ClipRRect(
-                  borderRadius: BorderRadius.circular(12),
+                  borderRadius: BorderRadius.circular(10),
                   child: Container(
-                    width: 120,
-                    height: 120,
-                    decoration: BoxDecoration(
-                      color: AppColors.cardBackground,
-                    ),
-                    // TODO: Use CachedNetworkImage when URL is available
-                    child: const Icon(Icons.image_outlined,
-                        color: AppColors.textSecondary),
+                    width: compact ? 80 : 100,
+                    height: compact ? 80 : 100,
+                    color: AppColors.surfaceMuted,
+                    child: showImage
+                        ? Image.file(file, fit: BoxFit.cover)
+                        : const Icon(Icons.image_outlined,
+                            color: AppColors.textSecondary, size: 28),
                   ),
                 );
               },
             ),
           ),
-        if (voiceMedia.isNotEmpty) ...[
-          const SizedBox(height: 8),
-          Row(
-            children: [
-              const Icon(Icons.mic, size: 18, color: AppColors.primary),
-              const SizedBox(width: 8),
-              const Text('语音记录',
-                  style: TextStyle(
-                      fontSize: 13, color: AppColors.textSecondary)),
-            ],
+        if (voiceMedia.isNotEmpty)
+          Padding(
+            padding: EdgeInsets.only(top: imageMedia.isNotEmpty ? 6 : 2),
+            child: Row(
+              children: [
+                const Icon(Icons.mic, size: 16, color: AppColors.primary),
+                const SizedBox(width: 6),
+                const Text('语音记录',
+                    style: TextStyle(
+                        fontSize: 12, color: AppColors.textSecondary)),
+              ],
+            ),
           ),
-        ],
-        if (linkMedia.isNotEmpty) ...[
-          const SizedBox(height: 8),
-          Row(
-            children: [
-              const Icon(Icons.link, size: 18, color: AppColors.accent1),
-              const SizedBox(width: 8),
-              Flexible(
-                child: Text(
-                  linkMedia.first.metadata?['title'] ?? linkMedia.first.url,
-                  maxLines: 1,
-                  overflow: TextOverflow.ellipsis,
-                  style: const TextStyle(
-                      fontSize: 13, color: AppColors.accent1),
+        if (linkMedia.isNotEmpty)
+          Padding(
+            padding: EdgeInsets.only(
+                top: (imageMedia.isNotEmpty || voiceMedia.isNotEmpty) ? 6 : 2),
+            child: Row(
+              children: [
+                const Icon(Icons.link, size: 16, color: AppColors.accentBlue),
+                const SizedBox(width: 6),
+                Flexible(
+                  child: Text(
+                    linkMedia.first.metadata?['title'] ?? linkMedia.first.url,
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                    style: const TextStyle(
+                        fontSize: 12, color: AppColors.accentBlue),
+                  ),
                 ),
-              ),
-            ],
+              ],
+            ),
           ),
-        ],
       ],
     );
   }

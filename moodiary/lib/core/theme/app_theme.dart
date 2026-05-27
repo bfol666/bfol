@@ -8,15 +8,14 @@ class AppTheme {
     return ThemeData(
       useMaterial3: true,
       colorScheme: ColorScheme.light(
-        surface: AppColors.background,
+        surface: AppColors.surface,
         primary: AppColors.primary,
         onPrimary: Colors.white,
-        secondary: AppColors.accent1,
+        secondary: AppColors.accentBlue,
         onSurface: AppColors.textPrimary,
-        outline: AppColors.glassBorder,
+        outline: AppColors.surfaceMuted,
       ),
       scaffoldBackgroundColor: AppColors.background,
-      fontFamily: 'Noto Sans SC',
 
       // AppBar
       appBarTheme: const AppBarTheme(
@@ -30,33 +29,32 @@ class AppTheme {
         ),
       ),
 
-      // Cards
+      // Cards — clean flat style
       cardTheme: CardThemeData(
-        color: AppColors.glassOverlay,
+        color: AppColors.surface,
         elevation: 0,
         shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(20),
-          side: BorderSide(
-            color: AppColors.glassBorder,
-            width: 0.5,
-          ),
+          borderRadius: BorderRadius.circular(18),
         ),
       ),
 
       // Input
       inputDecorationTheme: InputDecorationTheme(
         filled: true,
-        fillColor: AppColors.cardBackground,
-        contentPadding: const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
+        fillColor: AppColors.surfaceMuted,
+        contentPadding:
+            const EdgeInsets.symmetric(horizontal: 18, vertical: 14),
         border: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(16),
+          borderRadius: BorderRadius.circular(14),
           borderSide: BorderSide.none,
         ),
         focusedBorder: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(16),
-          borderSide: const BorderSide(color: AppColors.primary, width: 1.5),
+          borderRadius: BorderRadius.circular(14),
+          borderSide:
+              const BorderSide(color: AppColors.primary, width: 1.5),
         ),
-        hintStyle: const TextStyle(color: AppColors.textHint, fontSize: 14),
+        hintStyle:
+            const TextStyle(color: AppColors.textHint, fontSize: 14),
       ),
 
       // Elevated Button
@@ -65,9 +63,10 @@ class AppTheme {
           backgroundColor: AppColors.primary,
           foregroundColor: Colors.white,
           elevation: 0,
-          padding: const EdgeInsets.symmetric(horizontal: 32, vertical: 16),
+          padding:
+              const EdgeInsets.symmetric(horizontal: 32, vertical: 16),
           shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(16),
+            borderRadius: BorderRadius.circular(14),
           ),
           textStyle: const TextStyle(
             fontSize: 16,
@@ -87,7 +86,7 @@ class AppTheme {
 
       // Divider
       dividerTheme: const DividerThemeData(
-        color: AppColors.textHint,
+        color: AppColors.surfaceMuted,
         thickness: 0.5,
       ),
     );

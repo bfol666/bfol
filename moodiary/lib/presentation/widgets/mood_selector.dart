@@ -11,8 +11,8 @@ class MoodSelector extends StatelessWidget {
     MoodOption(emoji: '😢', label: '难过', score: 2, color: AppColors.moodSad),
     MoodOption(emoji: '😰', label: '焦虑', score: 2, color: AppColors.moodAnxious),
     MoodOption(emoji: '😤', label: '生气', score: 1, color: AppColors.moodAngry),
-    MoodOption(emoji: '🥰', label: '感激', score: 5, color: AppColors.moodHappy),
-    MoodOption(emoji: '🌟', label: '期待', score: 4, color: AppColors.coral),
+    MoodOption(emoji: '🥰', label: '感激', score: 5, color: AppColors.moodGrateful),
+    MoodOption(emoji: '🌟', label: '期待', score: 4, color: AppColors.moodExcited),
   ];
 
   const MoodSelector({
@@ -35,7 +35,7 @@ class MoodSelector extends StatelessWidget {
             width: 56,
             height: 72,
             decoration: BoxDecoration(
-              color: isSelected ? option.color.withValues(alpha: 0.4) : AppColors.cardBackground,
+              color: isSelected ? option.color.withValues(alpha: 0.4) : AppColors.surfaceMuted,
               borderRadius: BorderRadius.circular(16),
               border: isSelected
                   ? Border.all(color: option.color, width: 2)

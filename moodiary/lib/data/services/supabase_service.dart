@@ -2,33 +2,48 @@ import 'dart:typed_data';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
 class SupabaseService {
-  late final SupabaseClient _client;
+  SupabaseClient? _client;
+  bool _initialized = false;
+
+  bool get isInitialized => _initialized;
 
   Future<void> initialize(String url, String anonKey) async {
-    await Supabase.initialize(url: url, anonKey: anonKey);
-    _client = Supabase.instance.client;
+    if (url.isEmpty || anonKey.isEmpty) return;
+    try {
+      await Supabase.initialize(url: url, anonKey: anonKey);
+      _client = Supabase.instance.client;
+      _initialized = true;
+    } catch (_) {
+      _initialized = false;
+    }
   }
 
-  SupabaseClient get client => _client;
+  SupabaseClient get client {
+    if (!_initialized || _client == null) {
+      throw StateError('Supabase is not initialized. Configure SUPABASE_URL and SUPABASE_ANON_KEY.');
+    }
+    return _client!;
+  }
 
   // Auth
   Future<AuthResponse> signUp(String email, String password) async {
-    return _client.auth.signUp(email: email, password: password);
+    return client.auth.signUp(email: email, password: password);
   }
 
   Future<AuthResponse> signIn(String email, String password) async {
-    return _client.auth.signInWithPassword(email: email, password: password);
+    return client.auth.signInWithPassword(email: email, password: password);
   }
 
   Future<void> signOut() async {
-    await _client.auth.signOut();
+    await client.auth.signOut();
   }
 
-  User? get currentUser => _client.auth.currentUser;
+  User? get currentUser => client.auth.currentUser;
 
   // Entries
   Future<List<Map<String, dynamic>>> getEntries(String userId) async {
-    final response = await _client
+    final c = client;
+    final response = await c
         .from('entries')
         .select()
         .eq('user_id', userId)
@@ -37,15 +52,17 @@ class SupabaseService {
   }
 
   Future<Map<String, dynamic>> createEntry(Map<String, dynamic> data) async {
+    final c = client;
     final response =
-        await _client.from('entries').insert(data).select().single();
+        await c.from('entries').insert(data).select().single();
     return response;
   }
 
   // Weekly Reports
   Future<Map<String, dynamic>?> getWeeklyReport(
       String userId, String weekStart) async {
-    final response = await _client
+    final c = client;
+    final response = await c
         .from('weekly_reports')
         .select()
         .eq('user_id', userId)
@@ -57,11 +74,11 @@ class SupabaseService {
   // Storage
   Future<String> uploadMedia(String bucket, String path, List<int> bytes,
       {String? contentType}) async {
-    await _client.storage.from(bucket).uploadBinary(
+    await client.storage.from(bucket).uploadBinary(
           path,
           Uint8List.fromList(bytes),
           fileOptions: FileOptions(contentType: contentType),
         );
-    return _client.storage.from(bucket).getPublicUrl(path);
+    return client.storage.from(bucket).getPublicUrl(path);
   }
 }

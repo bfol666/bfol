@@ -13,11 +13,5 @@ class AppConstants {
   static const String appVersion = '1.0.0';
 
   // Limits
-  static const int freeMaxEntriesPerDay = 3;
-  static const int freeMaxMediaPerEntry = 1;
-  static const int proMaxMediaPerEntry = 9;
-
-  // Storage buckets
-  static const String imageBucket = 'entry-images';
-  static const String voiceBucket = 'entry-voices';
+  static const int maxMediaPerEntry = 9;
 }

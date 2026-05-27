@@ -6,10 +6,8 @@ import '../models/weekly_report.dart';
 class AIService {
   final String apiKey;
   final String baseUrl;
-  final http.Client _client;
 
-  AIService({required this.apiKey, this.baseUrl = 'https://api.openai.com/v1'})
-      : _client = http.Client();
+  AIService({required this.apiKey, this.baseUrl = 'https://api.openai.com/v1'});
 
   Map<String, String> get _headers => {
         'Authorization': 'Bearer $apiKey',
@@ -63,14 +61,14 @@ class AIService {
       filename: filename,
     ));
 
-    final response = await _client.send(request);
+    final response = await http.Client().send(request);
     final body = await response.stream.bytesToString();
     final json = jsonDecode(body) as Map<String, dynamic>;
     return json['text'] ?? '';
   }
 
   Future<String> _callGPT(String prompt) async {
-    final response = await _client.post(
+    final response = await http.post(
       Uri.parse('$baseUrl/chat/completions'),
       headers: _headers,
       body: jsonEncode({
@@ -88,8 +86,12 @@ class AIService {
       }),
     );
 
+    if (response.statusCode != 200) {
+      throw Exception('GPT API returned ${response.statusCode}: ${response.body}');
+    }
     final data = jsonDecode(response.body) as Map<String, dynamic>;
     final choices = data['choices'] as List;
+    if (choices.isEmpty) throw Exception('GPT API returned empty choices');
     return choices.first['message']['content'] ?? '';
   }
 
@@ -157,9 +159,6 @@ $text
     }
   }
 
-  void dispose() {
-    _client.close();
-  }
 }
 
 class AIAnalysis {

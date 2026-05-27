@@ -4,18 +4,24 @@ import '../models/entry.dart';
 
 class LocalStorageService {
   static const String _entriesBox = 'entries_cache';
-  static const String _draftBox = 'drafts';
 
   late Box<String> _entriesBoxInstance;
-  late Box<String> _draftsBoxInstance;
 
   Future<void> initialize() async {
-    await Hive.initFlutter();
     _entriesBoxInstance = await Hive.openBox<String>(_entriesBox);
-    _draftsBoxInstance = await Hive.openBox<String>(_draftBox);
   }
 
-  // Cached entries for offline access
+  // ── Entry CRUD ──
+
+  Future<void> addEntry(Entry entry) async {
+    await _entriesBoxInstance.put(entry.id, jsonEncode(entry.toJson()));
+  }
+
+  Future<void> deleteEntry(String id) async {
+    await _entriesBoxInstance.delete(id);
+  }
+
+  /// Bulk cache (used for sync)
   Future<void> cacheEntries(List<Entry> entries) async {
     await _entriesBoxInstance.clear();
     for (final entry in entries) {
@@ -29,22 +35,29 @@ class LocalStorageService {
     }).toList();
   }
 
-  // Draft saving
-  Future<void> saveDraft(String key, Map<String, dynamic> data) async {
-    await _draftsBoxInstance.put(key, jsonEncode(data));
+  // ── Simple local auth (MVP; replace with Supabase later) ──
+
+  static const String _authBox = 'auth_cache';
+  late Box<String> _authBoxInstance;
+
+  Future<void> initAuthBox() async {
+    _authBoxInstance = await Hive.openBox<String>(_authBox);
   }
 
-  Map<String, dynamic>? getDraft(String key) {
-    final json = _draftsBoxInstance.get(key);
-    if (json == null) return null;
-    return jsonDecode(json) as Map<String, dynamic>;
+  bool get isLoggedIn => _authBoxInstance.get('status') == 'authenticated';
+
+  Future<void> setLoggedIn(bool value) async {
+    await _authBoxInstance.put(
+        'status', value ? 'authenticated' : 'unauthenticated');
   }
 
-  Future<void> deleteDraft(String key) async {
-    await _draftsBoxInstance.delete(key);
+  String? get currentUserId {
+    final id = _authBoxInstance.get('user_id');
+    return id;
   }
 
-  Future<void> clearAllDrafts() async {
-    await _draftsBoxInstance.clear();
+  Future<void> setCurrentUserId(String id) async {
+    await _authBoxInstance.put('user_id', id);
   }
+
 }

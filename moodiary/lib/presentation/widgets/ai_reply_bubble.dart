@@ -1,7 +1,9 @@
 import 'package:flutter/material.dart';
 import '../../core/theme/app_colors.dart';
-import 'glass_container.dart';
 
+/// The only glassmorphic surface in the app.
+/// Purpose: AI response feels ephemeral, like a thought, not a permanent card.
+/// Glass blurs it into the background — light, floating, non-intrusive.
 class AIReplyBubble extends StatelessWidget {
   final String reply;
   final bool isLoading;
@@ -14,23 +16,32 @@ class AIReplyBubble extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return GlassContainer(
-      borderRadius: 16,
+    return Container(
       padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        color: AppColors.glassOverlay,
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(color: AppColors.glassBorder, width: 0.5),
+        boxShadow: [
+          BoxShadow(
+            color: AppColors.textPrimary.withValues(alpha: 0.03),
+            blurRadius: 16,
+            offset: const Offset(0, 4),
+          ),
+        ],
+      ),
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Container(
-            width: 36,
-            height: 36,
+            width: 34,
+            height: 34,
             decoration: BoxDecoration(
-              gradient: const LinearGradient(
-                colors: [AppColors.primary, AppColors.coral],
-              ),
-              borderRadius: BorderRadius.circular(12),
+              color: AppColors.primary.withValues(alpha: 0.1),
+              borderRadius: BorderRadius.circular(10),
             ),
             child: const Center(
-              child: Text('✨', style: TextStyle(fontSize: 18)),
+              child: Text('✨', style: TextStyle(fontSize: 16)),
             ),
           ),
           const SizedBox(width: 12),
@@ -43,7 +54,7 @@ class AIReplyBubble extends StatelessWidget {
                       const Text(
                         'AI 共鸣',
                         style: TextStyle(
-                          fontSize: 12,
+                          fontSize: 11,
                           fontWeight: FontWeight.w600,
                           color: AppColors.primary,
                         ),
@@ -71,19 +82,14 @@ class AIReplyBubble extends StatelessWidget {
       children: [
         Text(
           'AI 正在感受你的心情...',
-          style: TextStyle(
-            fontSize: 12,
-            color: AppColors.textSecondary,
-          ),
+          style: TextStyle(fontSize: 12, color: AppColors.textSecondary),
         ),
         SizedBox(height: 8),
         SizedBox(
-          width: 24,
-          height: 24,
-          child: CircularProgressIndicator(
-            strokeWidth: 2,
-            color: AppColors.primary,
-          ),
+          width: 20,
+          height: 20,
+          child:
+              CircularProgressIndicator(strokeWidth: 2, color: AppColors.primary),
         ),
       ],
     );
